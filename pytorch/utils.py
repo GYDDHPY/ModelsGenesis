@@ -163,7 +163,7 @@ def generate_pair(img, batch_size, config, status="test"):
         index = [i for i in range(img.shape[0])]
         random.shuffle(index)
         y = img[index[:batch_size]]
-        x = copy.deepcopy(y)
+        x = copy.deepcopy(y)   # 深层复制，x y分离，互相不受影响；
         for n in range(batch_size):
             
             # Autoencoder
