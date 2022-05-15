@@ -32,23 +32,28 @@ def bezier_curve(points, nTimes=1000):
         nTimes is the number of time steps, defaults to 1000
 
         See http://processingjs.nihongoresources.com/bezierinfo/
+        贝兹曲线：文章这里使用的是三次方的贝兹曲线，这个曲线从一个端点(P0)\
+        走向另一个端点(P1)，产生的两个随机点(P2 P3)提供方向信息；
     """
 
     nPoints = len(points)
     xPoints = np.array([p[0] for p in points])
-    yPoints = np.array([p[1] for p in points])
+    yPoints = np.array([p[1] for p in points])   # 四个点的纵坐标；
 
-    t = np.linspace(0.0, 1.0, nTimes)
+    t = np.linspace(0.0, 1.0, nTimes)        # 将0-1均分1000份
 
-    polynomial_array = np.array([ bernstein_poly(i, nPoints-1, t) for i in range(0, nPoints)   ])
+    polynomial_array = np.array([ bernstein_poly(i, nPoints-1, t) \
+                                 for i in range(0, nPoints)   ])
     
     xvals = np.dot(xPoints, polynomial_array)
     yvals = np.dot(yPoints, polynomial_array)
 
-    return xvals, yvals
+    return xvals, yvals     # 这里得到的相当于是曲线的坐标；
 
 def data_augmentation(x, y, prob=0.5):
     # augmentation by flipping
+    # 对图像随机翻转，每个图像连续翻转最多不超过3次；
+    # 返回的是随机翻转或者没有翻转的一个图像；
     cnt = 3
     while random.random() < prob and cnt > 0:
         degree = random.choice([0, 1, 2])
@@ -61,15 +66,20 @@ def data_augmentation(x, y, prob=0.5):
 def nonlinear_transformation(x, prob=0.5):
     if random.random() >= prob:
         return x
-    points = [[0, 0], [random.random(), random.random()], [random.random(), random.random()], [1, 1]]
-    xpoints = [p[0] for p in points]
-    ypoints = [p[1] for p in points]
+    points = [[0, 0], [random.random(), random.random()], \
+              [random.random(), random.random()], [1, 1]]
+    # random.random返回的是0-1的随机数；
+    # points中除了对角的两个顶点，还随机产生了两个点；
+    xpoints = [p[0] for p in points]   # 四个点的横坐标；
+    ypoints = [p[1] for p in points]   # 四个点的纵坐标；
     xvals, yvals = bezier_curve(points, nTimes=100000)
     if random.random() < 0.5:
         # Half change to get flip
         xvals = np.sort(xvals)
     else:
         xvals, yvals = np.sort(xvals), np.sort(yvals)
+        
+    # 以图像的像素值作为横坐标，在单调的三次贝兹曲线上进行插值，来实现非线性变换；
     nonlinear_x = np.interp(x, xvals, yvals)
     return nonlinear_x
 
@@ -167,10 +177,10 @@ def generate_pair(img, batch_size, config, status="test"):
         for n in range(batch_size):
             
             # Autoencoder
-            x[n] = copy.deepcopy(y[n])
+            x[n] = copy.deepcopy(y[n])    # 深层复制；
             
             # Flip
-            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)
+            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)    # 随机翻转；
 
             # Local Shuffle Pixel
             x[n] = local_pixel_shuffling(x[n], prob=config.local_rate)
