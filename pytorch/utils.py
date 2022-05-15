@@ -168,6 +168,7 @@ def image_out_painting(x):
 
 
 def generate_pair(img, batch_size, config, status="test"):
+    # 相当于是预训练的辅助任务；
     img_rows, img_cols, img_deps = img.shape[2], img.shape[3], img.shape[4]
     while True:
         index = [i for i in range(img.shape[0])]
@@ -180,15 +181,20 @@ def generate_pair(img, batch_size, config, status="test"):
             x[n] = copy.deepcopy(y[n])    # 深层复制；
             
             # Flip
-            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)    # 随机翻转；
+            # 随机翻转；
+            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)    
 
             # Local Shuffle Pixel
+            # 打乱局部的像素顺序；
             x[n] = local_pixel_shuffling(x[n], prob=config.local_rate)
             
             # Apply non-Linear transformation with an assigned probability
+            # 使用三次贝兹曲线对将像素进行非线性转换；
             x[n] = nonlinear_transformation(x[n], config.nonlinear_rate)
             
             # Inpainting & Outpainting
+            # 局部的遮挡像素；
+            # 遮挡外部或者内部，二选一；
             if random.random() < config.paint_rate:
                 if random.random() < config.inpaint_rate:
                     # Inpainting
