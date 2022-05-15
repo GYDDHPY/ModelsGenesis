@@ -49,6 +49,7 @@ def bezier_curve(points, nTimes=1000):
 
 def data_augmentation(x, y, prob=0.5):
     # augmentation by flipping
+    # 随机翻转，每个图像最多翻转3次；
     cnt = 3
     while random.random() < prob and cnt > 0:
         degree = random.choice([0, 1, 2])
@@ -160,17 +161,17 @@ def image_out_painting(x):
 def generate_pair(img, batch_size, config, status="test"):
     img_rows, img_cols, img_deps = img.shape[2], img.shape[3], img.shape[4]
     while True:
-        index = [i for i in range(img.shape[0])]
+        index = [i for i in range(img.shape[0])]    # index是全部训练数据的index；
         random.shuffle(index)
         y = img[index[:batch_size]]
         x = copy.deepcopy(y)   # 深层复制，x y分离，互相不受影响；
-        for n in range(batch_size):
+        for n in range(batch_size):   # 对一个batch操作；
             
             # Autoencoder
-            x[n] = copy.deepcopy(y[n])
+            x[n] = copy.deepcopy(y[n])    # 深层复制；
             
             # Flip
-            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)
+            x[n], y[n] = data_augmentation(x[n], y[n], config.flip_rate)    # 按照某个轴随机翻转；
 
             # Local Shuffle Pixel
             x[n] = local_pixel_shuffling(x[n], prob=config.local_rate)
